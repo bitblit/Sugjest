@@ -1,4 +1,4 @@
-# Schmocha
-An extension to simplify using mocha with sensitive data
+# Sugjest
+An extension to simplify using jest with sensitive data
 
 # Releases
