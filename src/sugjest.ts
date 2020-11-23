@@ -1,30 +1,16 @@
-/*
-    Root class
-*/
 import { Logger } from '@bitblit/ratchet/dist/common/logger';
 import { MapRatchet } from '@bitblit/ratchet/dist/common/map-ratchet';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SchmochaConfig } from './schmocha-config';
-import { SchmochaConfigFile } from './schmocha-config-file';
-import { SchmochaDescribe, SchmochaIt } from './schmocha-types';
+import { SugjestConfig } from './sugjest-config';
+import { SugjestConfigFile } from './sugjest-config-file';
+import { SugjestDescribe, SugjestIt, SugjestOptions } from './sugjest-types';
 
-export interface SchmochaOptions {
-  namespace: string;
-  enabledTags?: string[];
-  reqParams?: string[];
-}
+export class Sugjest {
+  public static DEFAULT_FILE: string = 'sugjest.json';
+  public static ENV_VAR_NAME: string = 'SUGJEST';
 
-export interface SchmochaProvider {
-  createDescribe(sch: SchmochaBase, options: SchmochaOptions): SchmochaDescribe;
-  createIt(sch: SchmochaBase, options: SchmochaOptions): SchmochaIt;
-}
-
-export class SchmochaBase {
-  public static DEFAULT_FILE: string = 'schmocha.json';
-  public static ENV_VAR_NAME: string = 'SCHMOCHA';
-
-  protected readonly config: SchmochaConfig;
+  protected readonly config: SugjestConfig;
   private readonly filePath: string;
 
   constructor(private namespace: string) {
@@ -32,27 +18,35 @@ export class SchmochaBase {
       throw new Error('You must provide a namespace');
     }
 
-    this.filePath = process.env[SchmochaBase.ENV_VAR_NAME] || path.join(process.cwd(), SchmochaBase.DEFAULT_FILE);
+    this.filePath = process.env[Sugjest.ENV_VAR_NAME] || path.join(process.cwd(), Sugjest.DEFAULT_FILE);
 
     if (!fs.existsSync(this.filePath)) {
-      throw new Error('Schmocha file not found (using "' + this.filePath + '")');
+      throw new Error('Sugjest file not found (using "' + this.filePath + '")');
     }
-    const fullFile: SchmochaConfigFile = JSON.parse(fs.readFileSync(this.filePath).toString());
+    const fullFile: SugjestConfigFile = JSON.parse(fs.readFileSync(this.filePath).toString());
 
-    const finder: SchmochaConfig[] = fullFile.configs.filter((c) => namespace === c.namespace);
+    const finder: SugjestConfig[] = fullFile.configs.filter((c) => namespace === c.namespace);
     if (finder.length === 0) {
       throw new Error('Namespace not found in file ' + this.filePath);
     } else if (finder.length > 1) {
       throw new Error('Namespace found more than once in ' + this.filePath);
     } else {
       this.config = finder[0];
-      Logger.debug('Schmocha configured to %j', this.config);
+      Logger.debug('Sugjest configured to %j', this.config);
     }
   }
 
-  protected static doCreate(options: SchmochaOptions, provider: SchmochaProvider): [SchmochaDescribe, SchmochaIt] {
-    const sch = new SchmochaBase(options.namespace);
-    return [provider.createDescribe(sch, options), provider.createIt(sch, options)];
+  public static create(options: SugjestOptions): [SugjestDescribe, SugjestIt] {
+    const instance = new Sugjest(options.namespace);
+    return [instance.createDescribe(options), instance.createIt(options)];
+  }
+
+  private createDescribe(options: SugjestOptions): SugjestDescribe {
+    return this.shouldSkip(options) ? describe.skip : describe;
+  }
+
+  private createIt(options: SugjestOptions): SugjestIt {
+    return this.shouldSkip(options) ? it.skip : it;
   }
 
   public filterToEnabled(inTagList: string[]): string[] {
@@ -100,7 +94,7 @@ export class SchmochaBase {
     return rval;
   }
 
-  public shouldSkip({ reqParams = [], enabledTags = [] }: SchmochaOptions): boolean {
+  public shouldSkip({ reqParams = [], enabledTags = [] }: SugjestOptions): boolean {
     let rval: boolean = false;
     if (!this.paramsPresent(reqParams)) {
       rval = true;
