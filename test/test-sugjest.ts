@@ -2,7 +2,7 @@ import { Sugjest } from '../src/sugjest';
 
 describe('#sugjest', function () {
   const [schDescribe, schIt] = Sugjest.create({
-    namespace: 'neon',
+    namespace: 'sugjest',
     enabledTags: ['ffmpeg'],
   });
 
