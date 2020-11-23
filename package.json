@@ -18,7 +18,7 @@
     "lint": "eslint src/**/*.ts",
     "lint-fix": "eslint --fix src/**/*.ts",
     "clean": "shx rm -Rf dist",
-    "apply-circle": "node dist/circleci/apply-circle-ci-env-variables-to-files src/build-properties.json",
+    "apply-circle": "node  node_modules/@bitblit/ratchet/dist/circleci/apply-circle-ci-env-variables-to-files src/build-properties.json",
     "test": "jest"
   },
   "repository": {
