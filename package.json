@@ -1,6 +1,6 @@
 {
   "name": "@bitblit/sugjest",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Extensions to simplify working with jest",
   "main": "./dist/index",
   "typings": "./dist/index",
